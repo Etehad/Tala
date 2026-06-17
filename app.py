@@ -118,10 +118,10 @@ def make_message(data):
     # ساخت پیام با فرمت جدید
     lines = [
         f"💰 طلا: {gold_price_str} تومان",
-        f"📊 تغییر امروز: ({gold_percent_sign}{gold_percent_str}%) {gold_sign}{gold_change_str} تومان",
+        f"📊 تغییر امروز: {gold_sign}{gold_change_str} تومان (%{gold_percent_sign}{gold_percent_str})",
         "",
         f"💵 دلار: {dollar_price_str} تومان",
-        f"📊 تغییر امروز: ({dollar_percent_sign}{dollar_percent_str}%) {dollar_sign}{dollar_change_str} تومان"
+        f"📊 تغییر امروز: {dollar_sign}{dollar_change_str} تومان (%{dollar_percent_sign}{dollar_percent_str})"
     ]
 
     return "\n".join(lines)
@@ -139,9 +139,9 @@ def send_telegram_message(text):
         return False
 
 def worker():
-    print("🚀 ترد worker شروع به کار کرد (هر ۲ دقیقه)")
+    print("🚀 ترد worker شروع به کار کرد (هر 5 دقیقه)")
     # ارسال پیام تست در شروع (اختیاری)
-    send_telegram_message("🤖 ربات قیمت طلا و دلار راه‌اندازی شد و هر ۲ دقیقه پیام ارسال می‌کند.")
+    send_telegram_message("🤖 ربات قیمت طلا و دلار راه‌اندازی شد و هر 5 دقیقه پیام ارسال می‌کند.")
     while True:
         try:
             print("🔄 دریافت داده...")
@@ -153,7 +153,7 @@ def worker():
                 print("⚠️ داده‌ای برای ارسال وجود ندارد")
         except Exception as e:
             print(f"❌ خطا در حلقه اصلی: {e}")
-        time.sleep(120)   # ۲ دقیقه
+        time.sleep(300)   # 5 دقیقه
 
 # ---------- شروع ترد worker در سطح ماژول (برای gunicorn) ----------
 worker_thread = threading.Thread(target=worker, daemon=True)
@@ -163,7 +163,7 @@ print("🧵 ترد worker راه‌اندازی شد (daemon=True)")
 # ---------- مسیرهای وب (برای سلامت سرویس) ----------
 @app.route('/')
 def index():
-    return "🤖 ربات قیمت طلا و دلار فعال است. هر ۲ دقیقه یک پیام ارسال می‌شود."
+    return "🤖 ربات قیمت طلا و دلار فعال است. هر 5 دقیقه یک پیام ارسال می‌شود."
 
 @app.route('/health')
 def health():
