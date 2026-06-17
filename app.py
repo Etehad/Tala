@@ -81,8 +81,8 @@ def fetch_data():
         "gold_price": gold_price_rial / 10 if gold_price_rial else None,
         "gold_change": gold_change_rial / 10 if gold_change_rial else None,
         "gold_percent": gold_percent,
-        "dollar_price": dollar_price_rial / 10 if dollar_price_rial else None,
-        "dollar_change": dollar_change_rial / 10 if dollar_change_rial else None,
+        "dollar_price": dollar_price_rial,
+        "dollar_change": dollar_change_rial,
         "dollar_percent": dollar_percent,
         "timestamp": datetime.now().strftime("%H:%M:%S")
     }
