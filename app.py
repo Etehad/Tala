@@ -90,30 +90,39 @@ def fetch_data():
 def format_number(num, decimals=0):
     if num is None:
         return "---"
-    return f"{num:,.{decimals}f}" if decimals > 0 else f"{num:,.0f}"
+    if decimals == 0:
+        return f"{num:,.0f}"
+    else:
+        return f"{num:,.{decimals}f}"
 
 def make_message(data):
     if not data:
         return "❌ خطا در دریافت داده‌ها"
 
-    gold_emoji = "📈" if data["gold_change"] and data["gold_change"] > 0 else "📉" if data["gold_change"] and data["gold_change"] < 0 else "➖"
-    dollar_emoji = "📈" if data["dollar_change"] and data["dollar_change"] > 0 else "📉" if data["dollar_change"] and data["dollar_change"] < 0 else "➖"
+    # قیمت طلا
+    gold_price_str = format_number(data['gold_price'], 0)
+    # تغییرات طلا
+    gold_change_str = format_number(data['gold_change'], 0) if data['gold_change'] is not None else "---"
+    gold_percent_str = f"{data['gold_percent']:.2f}" if data['gold_percent'] is not None else "---"
+    gold_sign = "+" if data['gold_change'] and data['gold_change'] > 0 else ""
+    gold_percent_sign = "+" if data['gold_percent'] and data['gold_percent'] > 0 else ""
 
+    # قیمت دلار
+    dollar_price_str = format_number(data['dollar_price'], 1)
+    # تغییرات دلار
+    dollar_change_str = format_number(data['dollar_change'], 0) if data['dollar_change'] is not None else "---"
+    dollar_percent_str = f"{data['dollar_percent']:.2f}" if data['dollar_percent'] is not None else "---"
+    dollar_sign = "+" if data['dollar_change'] and data['dollar_change'] > 0 else ""
+    dollar_percent_sign = "+" if data['dollar_percent'] and data['dollar_percent'] > 0 else ""
+
+    # ساخت پیام با فرمت جدید
     lines = [
-        f"🕒 زمان بروزرسانی: {data['timestamp']}",
-        ""
+        f"💰 طلا: {gold_price_str} تومان",
+        f"📊 تغییر امروز: ({gold_percent_sign}{gold_percent_str}%) {gold_sign}{gold_change_str} تومان",
+        "",
+        f"💵 دلار: {dollar_price_str} تومان",
+        f"📊 تغییر امروز: ({dollar_percent_sign}{dollar_percent_str}%) {dollar_sign}{dollar_change_str} تومان"
     ]
-    gold_str = f"💰 طلا (هر گرم ۱۸ عیار): {format_number(data['gold_price'], 0)} تومان"
-    if data["gold_change"] is not None and data["gold_percent"] is not None:
-        sign = "+" if data["gold_change"] > 0 else ""
-        gold_str += f"  {gold_emoji} تغییر: {sign}{format_number(data['gold_change'], 0)} تومان ({sign}{data['gold_percent']:.2f}%)"
-    lines.append(gold_str)
-
-    dollar_str = f"💵 دلار (آزاد / تتر): {format_number(data['dollar_price'], 1)} تومان"
-    if data["dollar_change"] is not None and data["dollar_percent"] is not None:
-        sign = "+" if data["dollar_change"] > 0 else ""
-        dollar_str += f"  {dollar_emoji} تغییر: {sign}{format_number(data['dollar_change'], 0)} تومان ({sign}{data['dollar_percent']:.2f}%)"
-    lines.append(dollar_str)
 
     return "\n".join(lines)
 
@@ -130,9 +139,9 @@ def send_telegram_message(text):
         return False
 
 def worker():
-    print("🚀 ترد worker شروع به کار کرد (هر ۵ دقیقه)")
-    # ارسال یک پیام تست در شروع
-    send_telegram_message("🤖 ربات قیمت طلا و دلار راه‌اندازی شد و منتظر دریافت داده‌ها است...")
+    print("🚀 ترد worker شروع به کار کرد (هر ۲ دقیقه)")
+    # ارسال پیام تست در شروع (اختیاری)
+    send_telegram_message("🤖 ربات قیمت طلا و دلار راه‌اندازی شد و هر ۲ دقیقه پیام ارسال می‌کند.")
     while True:
         try:
             print("🔄 دریافت داده...")
@@ -144,7 +153,7 @@ def worker():
                 print("⚠️ داده‌ای برای ارسال وجود ندارد")
         except Exception as e:
             print(f"❌ خطا در حلقه اصلی: {e}")
-        time.sleep(300)   # ۵ دقیقه
+        time.sleep(120)   # ۲ دقیقه
 
 # ---------- شروع ترد worker در سطح ماژول (برای gunicorn) ----------
 worker_thread = threading.Thread(target=worker, daemon=True)
@@ -154,10 +163,8 @@ print("🧵 ترد worker راه‌اندازی شد (daemon=True)")
 # ---------- مسیرهای وب (برای سلامت سرویس) ----------
 @app.route('/')
 def index():
-    return "🤖 ربات قیمت طلا و دلار فعال است. هر ۵ دقیقه یک پیام ارسال می‌شود."
+    return "🤖 ربات قیمت طلا و دلار فعال است. هر ۲ دقیقه یک پیام ارسال می‌شود."
 
 @app.route('/health')
 def health():
     return "OK", 200
-
-# (توجه: دیگر نیازی به app.run() نیست، زیرا gunicorn آن را اجرا می‌کند)
