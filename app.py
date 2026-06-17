@@ -128,7 +128,7 @@ def send_telegram_message(text):
     except Exception as e:
         print(f"❌ خطا در ارسال پیام: {e}")
 
-# ---------- حلقه اصلی ارسال هر ۵ دقیقه ----------
+# ---------- حلقه اصلی ارسال هر 2 دقیقه ----------
 def worker():
     while True:
         try:
@@ -141,12 +141,12 @@ def worker():
                 print("⚠️ داده‌ای برای ارسال وجود ندارد")
         except Exception as e:
             print(f"❌ خطا در حلقه اصلی: {e}")
-        time.sleep(300)   # ۵ دقیقه
+        time.sleep(120)   # ۵ دقیقه
 
 # ---------- مسیرهای وب (برای نگهداری سرویس) ----------
 @app.route('/')
 def index():
-    return "🤖 ربات قیمت طلا و دلار فعال است. هر ۵ دقیقه یک پیام ارسال می‌شود."
+    return "🤖 ربات قیمت طلا و دلار فعال است. هر 2 دقیقه یک پیام ارسال می‌شود."
 
 @app.route('/health')
 def health():
