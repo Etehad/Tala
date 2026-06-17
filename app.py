@@ -9,9 +9,9 @@ from flask import Flask
 
 app = Flask(__name__)
 
-# ---------- تنظیمات تلگرام (همان‌هایی که خواستی) ----------
+# ---------- تنظیمات تلگرام ----------
 BOT_TOKEN = "8430179675:AAGxwcLMKHRC02yIT-qpkNRa32eV9n75ehU"
-CHAT_ID = "-1004441007289"   # آیدی عددی چنل (با منفی)
+CHAT_ID = "-1004441007289"
 
 # ---------- آدرس و شناسه‌های عناصر سایت ----------
 URL_SITE = "https://www.iranjib.ir/showgroup/23/realtime_price/"
@@ -22,7 +22,7 @@ DOLLAR_CHANGE_ID = "f_19054_99"
 
 HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
 
-# ---------- توابع کمکی (همان کد قبلی) ----------
+# ---------- توابع کمکی ----------
 def clean_number(text):
     if not text:
         return None
@@ -77,7 +77,6 @@ def fetch_data():
     if dollar_change_elem:
         dollar_change_rial, dollar_percent = extract_change(str(dollar_change_elem))
 
-    # تبدیل ریال به تومان (تقسیم بر ۱۰)
     return {
         "gold_price": gold_price_rial / 10 if gold_price_rial else None,
         "gold_change": gold_change_rial / 10 if gold_change_rial else None,
@@ -104,16 +103,16 @@ def make_message(data):
         f"🕒 زمان بروزرسانی: {data['timestamp']}",
         ""
     ]
-    gold_str = f"💰 طلا: {format_number(data['gold_price'], 0)} تومان"
+    gold_str = f"💰 طلا (هر گرم ۱۸ عیار): {format_number(data['gold_price'], 0)} تومان"
     if data["gold_change"] is not None and data["gold_percent"] is not None:
         sign = "+" if data["gold_change"] > 0 else ""
-        gold_str += f"  {gold_emoji} تغییر امروز: {sign}{format_number(data['gold_change'], 0)} تومان ({sign}{data['gold_percent']:.2f}%)"
+        gold_str += f"  {gold_emoji} تغییر: {sign}{format_number(data['gold_change'], 0)} تومان ({sign}{data['gold_percent']:.2f}%)"
     lines.append(gold_str)
 
-    dollar_str = f"💵 دلار: {format_number(data['dollar_price'], 1)} تومان"
+    dollar_str = f"💵 دلار (آزاد / تتر): {format_number(data['dollar_price'], 1)} تومان"
     if data["dollar_change"] is not None and data["dollar_percent"] is not None:
         sign = "+" if data["dollar_change"] > 0 else ""
-        dollar_str += f"  {dollar_emoji} تغییر امروز: {sign}{format_number(data['dollar_change'], 0)} تومان ({sign}{data['dollar_percent']:.2f}%)"
+        dollar_str += f"  {dollar_emoji} تغییر: {sign}{format_number(data['dollar_change'], 0)} تومان ({sign}{data['dollar_percent']:.2f}%)"
     lines.append(dollar_str)
 
     return "\n".join(lines)
@@ -125,11 +124,15 @@ def send_telegram_message(text):
         resp = requests.post(url, json=payload, timeout=10)
         resp.raise_for_status()
         print("✅ پیام با موفقیت ارسال شد")
+        return True
     except Exception as e:
         print(f"❌ خطا در ارسال پیام: {e}")
+        return False
 
-# ---------- حلقه اصلی ارسال هر 2 دقیقه ----------
 def worker():
+    print("🚀 ترد worker شروع به کار کرد (هر ۵ دقیقه)")
+    # ارسال یک پیام تست در شروع
+    send_telegram_message("🤖 ربات قیمت طلا و دلار راه‌اندازی شد و منتظر دریافت داده‌ها است...")
     while True:
         try:
             print("🔄 دریافت داده...")
@@ -141,23 +144,20 @@ def worker():
                 print("⚠️ داده‌ای برای ارسال وجود ندارد")
         except Exception as e:
             print(f"❌ خطا در حلقه اصلی: {e}")
-        time.sleep(120)   # ۵ دقیقه
+        time.sleep(300)   # ۵ دقیقه
 
-# ---------- مسیرهای وب (برای نگهداری سرویس) ----------
+# ---------- شروع ترد worker در سطح ماژول (برای gunicorn) ----------
+worker_thread = threading.Thread(target=worker, daemon=True)
+worker_thread.start()
+print("🧵 ترد worker راه‌اندازی شد (daemon=True)")
+
+# ---------- مسیرهای وب (برای سلامت سرویس) ----------
 @app.route('/')
 def index():
-    return "🤖 ربات قیمت طلا و دلار فعال است. هر 2 دقیقه یک پیام ارسال می‌شود."
+    return "🤖 ربات قیمت طلا و دلار فعال است. هر ۵ دقیقه یک پیام ارسال می‌شود."
 
 @app.route('/health')
 def health():
     return "OK", 200
 
-# ---------- اجرای اصلی ----------
-if __name__ == '__main__':
-    # راه‌اندازی ترد ارسال‌کننده در پس‌زمینه
-    t = threading.Thread(target=worker, daemon=True)
-    t.start()
-
-    # اجرای وب‌سرویس (Render پورت را از متغیر PORT می‌دهد)
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+# (توجه: دیگر نیازی به app.run() نیست، زیرا gunicorn آن را اجرا می‌کند)
