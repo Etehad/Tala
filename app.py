@@ -81,7 +81,7 @@ def fetch_data():
         "gold_price": gold_price_rial / 10 if gold_price_rial else None,
         "gold_change": gold_change_rial / 10 if gold_change_rial else None,
         "gold_percent": gold_percent,
-        "dollar_price": dollar_price_rial,
+        "dollar_price": dollar_price_rial,          # ریال (تقسیم بر ۱۰ نشده)
         "dollar_change": dollar_change_rial,
         "dollar_percent": dollar_percent,
         "timestamp": datetime.now().strftime("%H:%M:%S")
@@ -115,13 +115,13 @@ def make_message(data):
     dollar_sign = "+" if data['dollar_change'] and data['dollar_change'] > 0 else ""
     dollar_percent_sign = "+" if data['dollar_percent'] and data['dollar_percent'] > 0 else ""
 
-    # ساخت پیام با فرمت جدید
+    # ساخت پیام با قرارگیری علامت در سمت چپ عدد (با کمک \u200E)
     lines = [
         f"💰 طلا: {gold_price_str} تومان",
-        f"📊 تغییر امروز: {gold_sign}{gold_change_str} تومان (%{gold_percent_sign}{gold_percent_str})",
+        f"📊 تغییر امروز: \u200E{gold_sign}{gold_change_str} تومان (٪\u200E{gold_percent_sign}{gold_percent_str})",
         "",
         f"💵 دلار: {dollar_price_str} تومان",
-        f"📊 تغییر امروز: {dollar_sign}{dollar_change_str} تومان (%{dollar_percent_sign}{dollar_percent_str})"
+        f"📊 تغییر امروز: \u200E{dollar_sign}{dollar_change_str} تومان (٪\u200E{dollar_percent_sign}{dollar_percent_str})"
     ]
 
     return "\n".join(lines)
@@ -140,7 +140,6 @@ def send_telegram_message(text):
 
 def worker():
     print("🚀 ترد worker شروع به کار کرد (هر 5 دقیقه)")
-    # ارسال پیام تست در شروع (اختیاری)
     send_telegram_message("🤖 ربات قیمت طلا و دلار راه‌اندازی شد و هر 5 دقیقه پیام ارسال می‌کند.")
     while True:
         try:
