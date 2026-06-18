@@ -108,7 +108,7 @@ def make_message(data):
     gold_percent_sign = "+" if data['gold_percent'] and data['gold_percent'] > 0 else ""
 
     # قیمت دلار
-    dollar_price_str = format_number(data['dollar_price'], 1)
+    dollar_price_str = format_number(data['dollar_price'], 0)
     # تغییرات دلار
     dollar_change_str = format_number(data['dollar_change'], 0) if data['dollar_change'] is not None else "---"
     dollar_percent_str = f"{data['dollar_percent']:.2f}" if data['dollar_percent'] is not None else "---"
@@ -118,10 +118,10 @@ def make_message(data):
     # ساخت پیام با قرارگیری علامت در سمت چپ عدد (با کمک \u200E)
     lines = [
         f"💰 طلا: {gold_price_str} تومان",
-        f"📊 تغییر امروز: \u200E{gold_sign}{gold_change_str} تومان (٪\u200E{gold_percent_sign}{gold_percent_str})",
+        f"📊 تغییر امروز: \u200E{gold_sign}{gold_change_str} تومان (%\u200E{gold_percent_sign}{gold_percent_str})",
         "",
         f"💵 دلار: {dollar_price_str} تومان",
-        f"📊 تغییر امروز: \u200E{dollar_sign}{dollar_change_str} تومان (٪\u200E{dollar_percent_sign}{dollar_percent_str})"
+        f"📊 تغییر امروز: \u200E{dollar_sign}{dollar_change_str} تومان (%\u200E{dollar_percent_sign}{dollar_percent_str})"
     ]
 
     return "\n".join(lines)
