@@ -9,9 +9,12 @@ from flask import Flask
 
 app = Flask(__name__)
 
-# ---------- تنظیمات تلگرام ----------
-BOT_TOKEN = "8430179675:AAGxwcLMKHRC02yIT-qpkNRa32eV9n75ehU"
-CHAT_ID = "-1004441007289"
+# ---------- تنظیمات تلگرام (از متغیرهای محیطی) ----------
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
+CHAT_ID = os.environ.get("CHAT_ID")
+
+if not BOT_TOKEN or not CHAT_ID:
+    raise ValueError("متغیرهای محیطی BOT_TOKEN و CHAT_ID تنظیم نشده‌اند!")
 
 # ---------- آدرس و شناسه‌های عناصر سایت ----------
 URL_SITE = "https://www.iranjib.ir/showgroup/23/realtime_price/"
@@ -152,7 +155,7 @@ def worker():
                 print("⚠️ داده‌ای برای ارسال وجود ندارد")
         except Exception as e:
             print(f"❌ خطا در حلقه اصلی: {e}")
-        time.sleep(300)   # 5 دقیقه
+        time.sleep(300)   # ۵ دقیقه
 
 # ---------- شروع ترد worker در سطح ماژول (برای gunicorn) ----------
 worker_thread = threading.Thread(target=worker, daemon=True)
@@ -162,7 +165,7 @@ print("🧵 ترد worker راه‌اندازی شد (daemon=True)")
 # ---------- مسیرهای وب (برای سلامت سرویس) ----------
 @app.route('/')
 def index():
-    return "🤖 ربات قیمت طلا و دلار فعال است. هر 5 دقیقه یک پیام ارسال می‌شود."
+    return "🤖 ربات قیمت طلا و دلار فعال است. هر ۵ دقیقه یک پیام ارسال می‌شود."
 
 @app.route('/health')
 def health():
